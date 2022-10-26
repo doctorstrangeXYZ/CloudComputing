@@ -1,0 +1,157 @@
+Lokasi Download Materi Training:
+	https://github.com/doctorstrangeXYZ
+
+01. Open Project
+	- https://console.cloud.google.com/
+	
+02. Startup VM
+	Search : VM Instance 
+	
+03. Edit package.json
+
+	$ cd helloworld
+	$ nano package.json
+	
+		{
+		  "name": "helloworld",
+		  "version": "1.0.0",
+		  "description": "",
+		  "main": "index.js",
+		  "scripts": {
+			"test": "echo \"Error: no test specified\" && exit 1"
+		  },
+		  "author": "Hari Budisantoso",
+		  "license": "ISC",
+		  "scripts": {
+			"start": "node index.js"
+		  },		  
+		  "dependencies": {
+			"express": "^4.18.2"
+		  }
+		}	
+		
+04. Run Hello World Node.js Web Server
+
+	$ cd helloworld
+	$ npm install
+	$ sudo PORT=80 npm start
+
+05. Test
+
+	Cara 1:
+	 - Buka terminal 2
+	 
+	 $ curl localhost
+			Hello, world!
+			
+	Cara 2:
+	 - Buka Web Browser
+	 - http://<EXTERNAL IP>
+
+=== Deploy Aplikasi "picard greeting" ke VM Instance ===
+
+01. Upload picard-greeting.zip ke VM Instance
+
+02. Extract picard-greeting.zip
+
+	$ ls
+	$ sudo apt-get install -y unzip
+	$ unzip picard-greeting.zip
+
+03. Edit picard-greeting/bin/www
+
+	$ cd picard-greeting/bin
+	$ nano www
+	
+		var port = normalizePort(process.env.PORT || '8080');
+		
+04. Run Hello World Node.js Web Server
+
+	$ cd picard-greeting
+	$ npm install
+	$ npm start
+
+05. Test
+	
+	Cara 1:
+	 - Buka terminal 2
+	 
+	 $ curl localhost:8080	==> SUCCESS
+			
+	Cara 2:
+	 - Buka Web Browser
+	 - http://<EXTERNAL IP>:8080	==> GAGAL
+	 
+06. Edit Firewall
+	Search : Firewall (VPC Network)
+
+	Create Firewall Rule
+	
+	Name : http-server-8080
+	Target : all instance in the network
+	Source IP Range : 0.0.0.0/0
+	Specified protocol and ports : tcp 8080
+	
+05. Test
+
+	 - Buka Web Browser
+	 - http://<EXTERNAL IP>:8080	==> SUCCESS
+	
+=== Install Go + Create Project ===
+
+01. Download the files
+
+	$ sudo apt-get install wget
+	$ wget https://dl.google.com/go/go1.16.2.linux-amd64.tar.gz
+
+02. Extract 
+
+	$ sudo tar -C /usr/local -xzf go1.16.2.linux-amd64.tar.gz
+
+03. Add the PATH
+
+	$ export PATH=$PATH:/usr/local/go/bin
+	
+04. Check version go
+
+	$ go version
+		go version go1.16.2 linux/amd64
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

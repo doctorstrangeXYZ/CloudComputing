@@ -116,12 +116,51 @@ Lokasi Download Materi Training:
 
 	$ go version
 		go version go1.16.2 linux/amd64
+		
+05. Buat simple/main.go
 
+	$ mkdir simple
+	$ cd simple
+	$ nano main.go
 
+		package main
 
+		import (
+				"fmt"
+				"net/http"
+		)
 
+		func main() {
+				http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+						fmt.Fprintf(w, "Nilai URL Path: %s\n", r.URL.Path)
+						fmt.Fprintf(w, "Hi James Bond, selamat datang di GCP\n")
+				})
 
+				http.ListenAndServe(":8080", nil)
+		}
 
+06. Build main.go
+
+	$ cd simple
+	$ go build main.go
+
+07. Run Executable
+
+	$ cd simple
+	$ ./main
+
+08. Test
+
+	Cara 1:
+	 - Buka terminal 2
+	 
+	 $ curl localhost:8080/JamesBondSecretAgent	
+		Nilai URL Path: /JamesBondSecretAgent	
+		Hi James Bond, selamat datang di GCP
+			
+	Cara 2:
+	 - Buka Web Browser
+	 - http://<EXTERNAL IP>:8080/JamesBondSecretAgent		
 
 
 

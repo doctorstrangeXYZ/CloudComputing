@@ -1,0 +1,507 @@
+01. Open Project
+	- https://console.cloud.google.com/
+	
+02. Search : Kubernetes Cluster
+
+03. Activate Cloud Shell
+
+04. Edit index.js
+	- Modifikasi agar PORT : 8081  --> Agar Matching dg Dockerfile
+	
+	$ cd helloworld
+	$ nano index.js
+	
+		'use strict';
+
+		const express = require('express');
+
+		const app = express();
+
+		app.get('/', (req, res) => {
+		  res.status(200).send('Hello, world!').end();
+		});
+
+		const PORT = parseInt(process.env.PORT) || 8081;
+		app.listen(PORT, () => {
+		  console.log(`App listening on port ${PORT}`);
+		  console.log('Press Ctrl+C to quit.');
+		});
+
+		module.exports = app;	
+
+05. Build Docker Image
+
+	$ docker image ls
+		REPOSITORY    TAG       IMAGE ID       CREATED          SIZE
+		hello-world   latest    0ffdd891171b   52 seconds ago   669MB
+		node          7         d9aed20b68a4   5 years ago      660MB
+	
+	$ docker image rm hello-world node:7
+	$ docker image ls
+		REPOSITORY    TAG       IMAGE ID       CREATED          SIZE
+	
+	$ cd helloworld
+	$ docker build -t hello-world .
+	
+	$ docker image ls
+		REPOSITORY    TAG       IMAGE ID       CREATED          SIZE
+		hello-world   latest    e6502273d2ae   29 seconds ago   669MB
+		node          7         d9aed20b68a4   5 years ago      660MB
+
+06. Run Docker Container
+
+	$ docker run -d -p 8081:8081 hello-world
+
+	$ docker container ls
+		CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS   					NAMES
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   35 seconds ago   Up 35 seconds   0.0.0.0:8081->8081/tcp   competent_mclean
+
+	- Klik "Web Preview"
+	- Change Port : 8081
+	
+07. Stop/Start Docker Container
+
+	$ docker container ls
+		CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS   					NAMES
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   35 seconds ago   Up 35 seconds   0.0.0.0:8081->8081/tcp   competent_mclean
+
+	$ docker container stop competent_mclean
+
+	$ docker container ls
+		CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+	$ docker container ls -a
+		CONTAINER ID   IMAGE         COMMAND                  CREATED         STATUS                            PORTS     NAMES
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   8 minutes ago   Exited (137) About a minute ago             competent_mclean
+		
+	$ docker container start competent_mclean
+	
+	$ docker container ls
+		CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS                    NAMES
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   10 minutes ago   Up 10 seconds   0.0.0.0:8081->8081/tcp   competent_mclean	
+		
+
+=== Dockerize a node.js (Picard Greeting) Application ===
+
+01. Upload & Unzip picard-greeting.zip
+	- Open Editor
+	- Right Click Navigator
+	- Pilih "Uploads Files..."
+
+	$ unzip picard-greeting.zip
+	
+02. Run picard greeting application
+
+	$ cd picard-greeting
+	$ npm install
+	$ npm start
+		Port 3000 is already in use
+		
+	Ubah port 3000 => 3333
+	$ cd picard-greeting\bin
+	$ nano www
+
+	-- Run lagi
+	
+	$ cd picard-greeting
+	$ npm start
+
+03. Create Dockerfile
+	- hub.docker.com
+	
+	$ cd picard-greeting
+	$ nano Dockerfile
+
+
+	FROM node:6-alpine
+	EXPOSE 3333
+	RUN apk add --update tini
+	RUN mkdir -p /usr/src/app
+	WORKDIR /usr/src/app
+	COPY package.json package.json
+	RUN npm install && npm cache clean --force
+	COPY . .
+	CMD ["/sbin/tini", "--", "node", "./bin/www"]
+
+04. Docker Build
+
+	$ docker image ls
+		REPOSITORY    TAG       IMAGE ID       CREATED          SIZE
+		hello-world   latest    e6502273d2ae   51 minutes ago   669MB
+		node          7         d9aed20b68a4   5 years ago      660MB
+
+	$ cd picard-greeting
+	$ docker build -t picard-app .
+		
+		...
+		Successfully built 59575f100032
+		Successfully tagged picard-app:latest		
+		
+	$ docker image ls
+	
+		REPOSITORY    TAG        IMAGE ID       CREATED          SIZE
+		picard-app    latest     59575f100032   59 seconds ago   65.4MB
+		hello-world   latest     e6502273d2ae   54 minutes ago   669MB
+		node          6-alpine   dfc29bfa7d41   3 years ago      56.1MB
+		node          7          d9aed20b68a4   5 years ago      660MB	
+		
+05. Run Docker Container
+
+	$ docker container run -d --rm -p 8080:3333 picard-app
+	
+	$ docker container ls
+		CONTAINER ID   IMAGE         COMMAND                  CREATED          STATUS          PORTS                    NAMES
+		12e268e67bb6   picard-app    "/sbin/tini -- node …"   23 seconds ago   Up 22 seconds   0.0.0.0:8080->3333/tcp   peaceful_hugle
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   55 minutes ago   Up 45 minutes   0.0.0.0:8081->8081/tcp   competent_mclean
+
+06. Test
+
+	Web Preview
+	Change Port : 8081 --> Hello World
+	              8080 --> Picard Greeting
+
+07. Run Second Docker Container - Picard Greeting
+
+	$ docker container run -d --rm -p 9090:3333 picard-app
+	
+	$ docker container ls
+
+		CONTAINER ID   IMAGE         COMMAND                  CREATED             STATUS          PORTS                    NAMES
+		f6735dc3e2c7   picard-app    "/sbin/tini -- node …"   13 seconds ago      Up 12 seconds   0.0.0.0:9090->3333/tcp   affectionate_feynman
+		12e268e67bb6   picard-app    "/sbin/tini -- node …"   12 minutes ago      Up 12 minutes   0.0.0.0:8080->3333/tcp   peaceful_hugle
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   About an hour ago   Up 57 minutes   0.0.0.0:8081->8081/tcp   competent_mclean
+
+08. Test
+
+	Web Preview
+	Change Port : 8081 --> Hello World
+	              8080 --> Picard Greeting
+				  9090 --> Picard Greeting
+
+09. Cleansing
+	
+	-- Menghapus Container
+	$ docker container ls
+
+		CONTAINER ID   IMAGE         COMMAND                  CREATED             STATUS          PORTS                    NAMES
+		f6735dc3e2c7   picard-app    "/sbin/tini -- node …"   13 seconds ago      Up 12 seconds   0.0.0.0:9090->3333/tcp   affectionate_feynman
+		12e268e67bb6   picard-app    "/sbin/tini -- node …"   12 minutes ago      Up 12 minutes   0.0.0.0:8080->3333/tcp   peaceful_hugle
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   About an hour ago   Up 57 minutes   0.0.0.0:8081->8081/tcp   competent_mclean
+
+	$ docker container stop f6735dc3e2c7 12e268e67bb6 0932d64e6c1d
+	
+	$ docker container ls	
+		CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+	$ docker container ls -a
+		CONTAINER ID   IMAGE         COMMAND                  CREATED             STATUS                        PORTS     NAMES
+		0932d64e6c1d   hello-world   "/bin/sh -c 'node in…"   About an hour ago   Exited (137) 52 seconds ago             competent_mclean	
+		
+	$ docker container rm 0932d64e6c1d 	
+	$ docker container ls -a  
+		CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES		
+
+	-- Menghapus Image
+		
+	$ docker image ls
+		REPOSITORY    TAG        IMAGE ID       CREATED             SIZE
+		picard-app    latest     59575f100032   26 minutes ago      65.4MB
+		hello-world   latest     e6502273d2ae   About an hour ago   669MB
+		node          6-alpine   dfc29bfa7d41   3 years ago         56.1MB
+		node          7          d9aed20b68a4   5 years ago         660MB	
+		
+	$ docker image rm picard-app hello-world node:6-alpine node:7 	
+	
+	$ docker image ls
+		REPOSITORY   TAG       IMAGE ID   CREATED   SIZE		
+		
+=== Kubernetes : Deployment, ReplicaSets, Pods ===
+
+01. Create Deployment		
+		
+	$ kubectl get deployment	
+		No resources found in default namespace.
+		
+	$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP   20h		
+		
+	-- Check hub.docker.com : httpd	
+		
+	$ kubectl create deployment my-apache --image httpd	
+		
+02. Check semua object yg terbentuk		
+		
+	$ kubectl get all		
+
+		NAME                             READY   STATUS    RESTARTS   AGE
+		pod/my-apache-7b68fdd849-xdd5w   1/1     Running   0          75s
+
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP   20h
+
+		NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/my-apache   1/1     1            1           75s
+
+		NAME                                   DESIRED   CURRENT   READY   AGE
+		replicaset.apps/my-apache-7b68fdd849   1         1         1       75s		
+		
+03. Ubah Replicaset dari 1 ke 2
+
+	$ kubectl get rs
+		NAME                   DESIRED   CURRENT   READY   AGE
+		my-apache-7b68fdd849   1         1         1       5m46s
+	
+	$ kubectl scale deployment my-apache --replicas 2
+	$ kubectl get rs
+		NAME                   DESIRED   CURRENT   READY   AGE
+		my-apache-7b68fdd849   2         2         2       6m53s		
+		
+04. Check Pods		
+		
+	$ kubectl get pods	
+		NAME                         READY   STATUS    RESTARTS   AGE
+		my-apache-7b68fdd849-2z6vb   1/1     Running   0          3m32s
+		my-apache-7b68fdd849-xdd5w   1/1     Running   0          10m		
+		
+	$ kubectl get all			
+		NAME                             READY   STATUS    RESTARTS   AGE
+		pod/my-apache-7b68fdd849-2z6vb   1/1     Running   0          5m5s
+		pod/my-apache-7b68fdd849-xdd5w   1/1     Running   0          11m
+
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP   21h
+
+		NAME                        READY   UP-TO-DATE   AVAILABLE   AGE
+		deployment.apps/my-apache   2/2     2            2           11m
+
+		NAME                                   DESIRED   CURRENT   READY   AGE
+		replicaset.apps/my-apache-7b68fdd849   2         2         2       11m		
+
+05. Simulasi Kerusakan
+
+	$ kubectl delete pod/my-apache-7b68fdd849-2z6vb
+	
+	$ kubectl get pods
+		NAME                         READY   STATUS              RESTARTS   AGE
+		my-apache-7b68fdd849-xdd5w   1/1     Running             0          16m
+		my-apache-7b68fdd849-ztdqw   0/1     ContainerCreating   0          5s
+
+	$ kubectl get pods
+		NAME                         READY   STATUS    RESTARTS   AGE
+		my-apache-7b68fdd849-xdd5w   1/1     Running   0          16m
+		my-apache-7b68fdd849-ztdqw   1/1     Running   0          26s
+
+06. Cleansing
+
+	$ kubectl delete deployment my-apache
+	$ kubectl get all
+		NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		service/kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP   21h
+
+=== Exposing Kubernetes Ports ===
+
+01. Buat deployment nginx
+
+	$ kubectl create deployment nginx --image=nginx --replicas 3
+
+	$ kubectl get pods
+		NAME                     READY   STATUS    RESTARTS   AGE
+		nginx-6799fc88d8-7k827   1/1     Running   0          10s
+		nginx-6799fc88d8-cqvcz   1/1     Running   0          10s
+		nginx-6799fc88d8-xtg86   1/1     Running   0          10s
+	
+	$ kubectl get rs
+		NAME               DESIRED   CURRENT   READY   AGE
+		nginx-6799fc88d8   3         3         3       62s
+	
+	$ kubectl get deployment
+		NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx   3/3     3            3           88s
+
+02. Create Services: LoadBalancer
+
+	$ kubectl get services
+		NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		kubernetes   ClusterIP   10.12.0.1    <none>        443/TCP   21h
+	
+	$ kubectl expose deployment nginx --name=nginx-lb --type=LoadBalancer --port=80 --target-port=80
+
+	$ kubectl get services
+		NAME         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+		kubernetes   ClusterIP      10.12.0.1      <none>        443/TCP        21h
+		nginx-lb     LoadBalancer   10.12.10.170   <pending>     80:32195/TCP   7s
+
+	$ kubectl get services
+		NAME         TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+		kubernetes   ClusterIP      10.12.0.1      <none>          443/TCP        21h
+		nginx-lb     LoadBalancer   10.12.10.170   34.101.37.197   80:32195/TCP   68s
+03. Test
+
+	$ curl http://34.101.37.197
+	
+	Buka Web Browser 
+	- http://34.101.37.197
+
+
+=== Container Registry ===
+
+01. hub.docker.com
+
+02. gcr.io (Google Container Registry)
+
+
+
+=== Build image container for kubernetes : Hello World ===
+
+01. Check image 
+
+	$ docker image ls
+	REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+02. Upload docker image ke gcr.io
+
+	$ cd helloworld
+	$ docker build -t gcr.io/forward-venture-366606/hello-world:1.0 .
+	$ docker image ls
+		REPOSITORY                                  TAG       IMAGE ID       CREATED          SIZE
+		gcr.io/forward-venture-366606/hello-world   1.0       8695f45277e2   31 seconds ago   669MB
+		node                                        7         d9aed20b68a4   5 years ago      660MB
+
+	$ gcloud auth configure-docker
+	$ docker push gcr.io/forward-venture-366606/hello-world:1.0
+		The push refers to repository [gcr.io/forward-venture-366606/hello-world]
+		2f183508fd38: Pushed
+		58d879ba55f1: Pushed
+		1fc3f4270265: Pushed
+		b8f11cee62ef: Pushed
+		ab90d83fa34a: Pushed
+		8ee318e54723: Pushed
+		e6695624484e: Pushed
+		da59b99bbd3b: Pushed
+		5616a6292c16: Layer already exists
+		f3ed6cb59ab0: Layer already exists
+		654f45ecb7e3: Layer already exists
+		2c40c66f7667: Layer already exists
+		1.0: digest: sha256:83ba42cb8fbd67cb87b4dd320fb6cec8883bdefc2baed86a0cde2e4f71245229 size: 2841
+
+03. Create deployment
+
+	$ kubectl get deployment
+		NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+		nginx   3/3     3            3           100m
+	
+	$ kubectl create deployment hello-server --image=gcr.io/forward-venture-366606/hello-world:1.0 --replicas=3
+	
+	$ kubectl get deployment
+		NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+		hello-server   3/3     3            3           33s
+		nginx          3/3     3            3           101m	
+	
+04. Create Services : LoadBalancer
+
+	$ kubectl get services
+		NAME         TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)        AGE
+		kubernetes   ClusterIP      10.12.0.1      <none>          443/TCP        23h
+		nginx-lb     LoadBalancer   10.12.10.170   34.101.37.197   80:32195/TCP   98m
+	
+	$ kubectl expose deployment hello-server --name=hello-server-lb --type=LoadBalancer --port=8080 --target-port=8081
+	
+	$ kubectl get services
+		NAME              TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)          AGE
+		hello-server-lb   LoadBalancer   10.12.2.170    34.101.43.245   8080:30737/TCP   43s
+		kubernetes        ClusterIP      10.12.0.1      <none>          443/TCP          23h
+		nginx-lb          LoadBalancer   10.12.10.170   34.101.37.197   80:32195/TCP     99m	
+	
+05. Test
+
+	http://34.101.43.245:8080
+	
+=== Build image container for kubernetes : Picard App ===
+
+01. Upload docker image ke gcr.io
+
+	$ cd picard-greeting
+	$ docker build -t gcr.io/forward-venture-366606/picard-app:1.0 .
+	$ gcloud auth configure-docker
+	$ docker push gcr.io/forward-venture-366606/picard-app:1.0
+
+02. Create deployment
+	
+	$ kubectl create deployment startrek --image=gcr.io/forward-venture-366606/picard-app:1.0 --replicas=3
+	
+04. Create Services : LoadBalancer
+	
+	$ kubectl expose deployment startrek --name=startrek-lb --type=LoadBalancer --port=8888 --target-port=3333
+	
+	$ kubectl get services
+		NAME              TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)          AGE
+		hello-server-lb   LoadBalancer   10.12.2.170    34.101.43.245   8080:30737/TCP   11m
+		kubernetes        ClusterIP      10.12.0.1      <none>          443/TCP          23h
+		nginx-lb          LoadBalancer   10.12.10.170   34.101.37.197   80:32195/TCP     110m
+		startrek-lb       LoadBalancer   10.12.0.94     34.101.96.232   8888:31370/TCP   2m6s	
+	
+05. Test
+
+	http://34.101.96.232:8888
+	
+=== Google App Engine : Nodejs - HelloWorld ===
+
+01. Enable App Engine 
+
+	Search : App Engine
+
+02. Activate Cloud Shell
+
+	$ gcloud auth list
+		Credentialed Accounts
+
+		ACTIVE: *
+		ACCOUNT: doctor.strange.xyz@gmail.com
+
+		To set the active account, run:
+			$ gcloud config set account `ACCOUNT`
+
+	$ gcloud config list project 
+		[core]
+		project = forward-venture-366606
+
+		Your active configuration is: [cloudshell-31242]
+
+03. Create app.yaml
+
+	$ cd helloworld
+	$ nano app.yaml
+	
+		runtime: nodejs16
+		
+04. Deploy
+
+	$ cd helloworld
+	$ gcloud app deploy
+		
+		....
+		File upload done.
+		Updating service [default]...done.     
+		Setting traffic split for service [default]...done.   
+		Deployed service [default] to [https://forward-venture-366606.as.r.appspot.com]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
